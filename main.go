@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend-go/config"
+	"backend-go/routes"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -12,14 +13,9 @@ func main() {
 	if err:= godotenv.Load(); err != nil{
 		log.Fatal("Error loading .env file")
 	}
+	config.ConnectDB()
 
 	r:= gin.Default()
-	config.ConnectDB()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
+	r = routes.InitRouter()
 	r.Run(":8080")
 }
