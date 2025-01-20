@@ -18,7 +18,6 @@ func Register(c *gin.Context) {
 		Username string `json:"username" validate:"required"`
 		Password string `json:"password" validate:"required"`
 		Role     string `json:"role"`
-
 	}
 
 	var input RegisterInput
