@@ -22,6 +22,37 @@ func ConnectDB(){
 	}
 	fmt.Println("Connected to database")
 
-	DB.AutoMigrate(&models.User{})
+	// DeleteMigration()
+
+	DB.AutoMigrate(
+		&models.User{},
+		&models.Profile{},
+		&models.Course{},
+		&models.Enrollment{},
+		&models.Lesson{},
+		&models.Quiz{},
+		&models.Question{},
+		&models.Answer{},
+		&models.UserCourse{},
+		&models.UserQuiz{},
+		&models.UserAnswer{},
+	)
 	fmt.Println("Database Migrated")
+}
+
+func DeleteMigration(){
+	DB.Migrator().DropTable(
+		&models.User{},
+		&models.Profile{},
+		&models.Course{},
+		&models.Enrollment{},
+		&models.Lesson{},
+		&models.Quiz{},
+		&models.Question{},
+		&models.Answer{},
+		&models.UserCourse{},
+		&models.UserQuiz{},
+		&models.UserAnswer{},
+	)
+	fmt.Println("Table deleted")
 }
