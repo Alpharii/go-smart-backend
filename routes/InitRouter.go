@@ -24,8 +24,8 @@ func InitRouter() *gin.Engine {
 
 	//course
 	r.POST("/course", middleware.IsLogin, middleware.IsAdmin, controllers.CreateCourse)
-	r.GET("/courses", controllers.GetCourses)
-	r.GET("/course/:id", controllers.GetCourseByID)
+	r.GET("/courses", middleware.IsLogin, controllers.GetCourses)
+	r.GET("/course/:id", middleware.IsLogin, controllers.GetCourseByID)
 	r.GET("/course/:id/students", controllers.GetStudentsInCourse)
 	r.GET("course/:id/lessons", middleware.IsLogin, controllers.GetLessonsInCourse)
 	r.PUT("/course/:id", middleware.IsLogin, middleware.IsAdmin, controllers.UpdateCourse)
@@ -38,11 +38,10 @@ func InitRouter() *gin.Engine {
 
 	//lesson
 	r.POST("/lesson", middleware.IsLogin, middleware.IsAdmin, controllers.CreateLesson)
-	r.GET("/lessons", controllers.GetLessons)
-	r.GET("/lesson/:id", controllers.GetLessonByID)
+	r.GET("/lessons", middleware.IsEnrolled, controllers.GetLessons)
+	r.GET("/lesson/:id", middleware.IsEnrolled, controllers.GetLessonByID)
 	r.PUT("/lesson/:id", middleware.IsLogin, middleware.IsAdmin, controllers.UpdateLesson)
 	r.DELETE("/lesson/:id", middleware.IsLogin, middleware.IsAdmin, controllers.DeleteLesson)
-
 
 	//test
 	r.GET("/protected", middleware.IsLogin, middleware.IsAdmin, func(ctx *gin.Context) {
@@ -54,7 +53,6 @@ func InitRouter() *gin.Engine {
 			},
 		})
 	})
-	
 
 	return r
 }
