@@ -18,7 +18,7 @@ type Profile struct {
 	LastName  string `gorm:"not null"`
 	Phone     string `gorm:"not null"`
 	Address   string `gorm:"not null"`
-	Avatar    string `gorm:"not null"`
+	Image     string `gorm:"not null"` // Kolom untuk link ke file
 }
 
 type Course struct {
