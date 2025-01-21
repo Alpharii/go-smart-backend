@@ -4,10 +4,12 @@ import (
 	"backend-go/config"
 	"backend-go/models"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 )
 
 type CourseInput struct {
@@ -162,3 +164,55 @@ func DeleteCourse(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Course deleted successfully"})
 }
+
+func GetStudentsInCourse(c *gin.Context) {
+	// Ambil CourseID dari parameter URL
+	courseID := c.Param("id")
+
+	// Validasi CourseID
+	if courseID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Course ID is required"})
+		return
+	}
+
+	// Periksa apakah kursus ada
+	var course models.Course
+	if err := config.DB.First(&course, courseID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve course", "details": err.Error()})
+		}
+		return
+	}
+
+	// Ambil daftar murid yang terdaftar di kursus ini
+	var enrollments []models.Enrollment
+	if err := config.DB.Preload("User").Where("course_id = ?", courseID).Find(&enrollments).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve enrollments", "details": err.Error()})
+		return
+	}
+
+	// Extract students' information
+	students := []struct {
+		UserID   uint   `json:"user_id"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+	}{
+	}
+
+	for _, enrollment := range enrollments {
+		students = append(students, struct {
+			UserID   uint   `json:"user_id"`
+			Username string `json:"username"`
+			Email    string `json:"email"`
+		}{
+			UserID:   enrollment.UserID,
+			Username: enrollment.User.Username,
+			Email:    enrollment.User.Email,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"course": course.Name, "students": students})
+}
+

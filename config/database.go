@@ -33,7 +33,6 @@ func ConnectDB(){
 		&models.Quiz{},
 		&models.Question{},
 		&models.Answer{},
-		&models.UserCourse{},
 		&models.UserQuiz{},
 		&models.UserAnswer{},
 	)
@@ -50,7 +49,6 @@ func DeleteMigration(){
 		&models.Quiz{},
 		&models.Question{},
 		&models.Answer{},
-		&models.UserCourse{},
 		&models.UserQuiz{},
 		&models.UserAnswer{},
 	)

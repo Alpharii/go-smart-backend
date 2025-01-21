@@ -26,11 +26,11 @@ func InitRouter() *gin.Engine {
 	r.POST("/course", middleware.IsLogin, middleware.IsAdmin, controllers.CreateCourse)
 	r.GET("/courses", controllers.GetCourses)
 	r.GET("/course/:id", controllers.GetCourseByID)
+	r.GET("/course/:id/students", controllers.GetStudentsInCourse)
 	r.PUT("/course/:id", middleware.IsLogin, middleware.IsAdmin, controllers.UpdateCourse)
 	r.DELETE("/course/:id", middleware.IsLogin, middleware.IsAdmin, controllers.DeleteCourse)
 
-
-
+	//test
 	r.GET("/protected", middleware.IsLogin, middleware.IsAdmin, func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
 			"message": "Hello World",

@@ -71,14 +71,6 @@ type Answer struct {
 	Question   *Question `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:QuestionID"`
 }
 
-type UserCourse struct {
-	gorm.Model
-	UserID   uint
-	User     *User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
-	CourseID uint
-	Course   *Course `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:CourseID"`
-}
-
 type UserQuiz struct {
 	gorm.Model
 	UserID uint
