@@ -61,7 +61,7 @@ func CreateProfile(c *gin.Context) {
 	if err == nil {
 		// Membuat nama file unik
 		extension := filepath.Ext(file.Filename)
-		uniqueFilename := fmt.Sprintf("%s-%d%s", "profile-", input.FirstName, time.Now().Unix(), extension)
+		uniqueFilename := fmt.Sprintf("%s-%s-%d%s", "profile", input.FirstName, time.Now().Unix(), extension)
 
 		// Simpan file ke direktori public/uploads
 		filePath := filepath.Join(publicDir, uniqueFilename)
