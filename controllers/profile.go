@@ -81,7 +81,6 @@ func CreateProfile(c *gin.Context) {
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
 		Phone:     input.Phone,
-		Address:   input.Address,
 		Image:     imageURL,
 	}
 
@@ -195,7 +194,6 @@ func UpdateProfile(c *gin.Context) {
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
 		Phone:     input.Phone,
-		Address:   input.Address,
 		Image:     imageURL, // Perbarui URL gambar
 	}
 

@@ -97,6 +97,24 @@ func GetLessonByID(c *gin.Context) {
 	c.JSON(200, gin.H{"data": lesson})
 }
 
+func GetLessonsByCourseID(c *gin.Context) {
+	courseID := c.Param("course_id")
+
+	// Fetch all lessons belonging to the course
+	var lessons []models.Lesson
+	if err := config.DB.Where("course_id = ?", courseID).Find(&lessons).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(404, gin.H{"error": "No lessons found for this course"})
+		} else {
+			c.JSON(500, gin.H{"error": "Failed to fetch lessons", "details": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(200, gin.H{"data": lessons})
+}
+
+
 // UpdateLesson - Handler to update an existing lesson (optional)
 func UpdateLesson(c *gin.Context) {
 	lessonID := c.Param("id")
