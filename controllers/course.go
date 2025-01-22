@@ -5,7 +5,10 @@ import (
 	"backend-go/models"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -13,11 +16,10 @@ import (
 )
 
 type CourseInput struct {
-	Name        string  `json:"name" validate:"required"`
-	Description string  `json:"description" validate:"required"`
-	Price       float64 `json:"price" validate:"gte=0"`
-	Thumbnail   string  `json:"thumbnail"`
-	UserID      uint    `json:"user_id" validate:"required"`
+	Name        string  `form:"name" validate:"required"`
+	Description string  `form:"description" validate:"required"`
+	Price       float64 `form:"price" validate:"gte=0"`
+	Image       string  `form:"image"`
 }
 
 // Create Course
@@ -25,14 +27,14 @@ func CreateCourse(c *gin.Context) {
 	var input CourseInput
 	var validate = validator.New()
 
-	// Bind input JSON ke struct
-	if err := c.ShouldBindJSON(&input); err != nil {
+	// Parsing data dari multipart/form-data
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
-	// Validasi input (kecuali UserID karena akan diambil dari header)
-	if err := validate.StructExcept(&input, "UserID"); err != nil {
+	// Validasi input (kecuali UserID karena akan diambil dari context)
+	if err := validate.Struct(&input); err != nil {
 		var errorMessages []string
 		for _, err := range err.(validator.ValidationErrors) {
 			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", strings.ToLower(err.Field()), err.Tag()))
@@ -41,10 +43,37 @@ func CreateCourse(c *gin.Context) {
 		return
 	}
 
+	// Ambil user_id dari context (diset oleh middleware IsLogin)
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(500, gin.H{"error": "Failed to retrieve user ID from context"})
 		return
+	}
+
+	// Direktori untuk menyimpan file
+	publicDir := "./public/uploads"
+	if _, err := os.Stat(publicDir); os.IsNotExist(err) {
+		os.MkdirAll(publicDir, os.ModePerm)
+	}
+
+	// Proses upload file gambar
+	file, err := c.FormFile("image") // Ambil file dari form-data dengan key "image"
+	var imageURL string
+	if err == nil {
+		// Membuat nama file unik
+		extension := filepath.Ext(file.Filename)
+		uniqueFilename := fmt.Sprintf("%s-%s-%d%s", "course", input.Name, time.Now().Unix(), extension)
+
+		// Simpan file ke direktori public/uploads
+		filePath := filepath.Join(publicDir, uniqueFilename)
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(500, gin.H{"error": "Failed to upload file", "details": err.Error()})
+			return
+		}
+
+		imageURL = fmt.Sprintf("/uploads/%s", uniqueFilename)
+	} else {
+		imageURL = ""
 	}
 
 	// Membuat Course
@@ -52,7 +81,7 @@ func CreateCourse(c *gin.Context) {
 		Name:        input.Name,
 		Description: input.Description,
 		Price:       input.Price,
-		Thumbnail:   input.Thumbnail,
+		Image:       imageURL,
 		UserID:      userID.(uint),
 	}
 
@@ -106,13 +135,13 @@ func UpdateCourse(c *gin.Context) {
 	var input CourseInput
 	var validate = validator.New()
 
-	// Bind input JSON ke struct
-	if err := c.ShouldBindJSON(&input); err != nil {
+	// Parsing data dari multipart/form-data
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
-	// Validasi input (kecuali UserID karena akan diambil dari header)
+	// Validasi input
 	if err := validate.StructExcept(&input, "UserID"); err != nil {
 		var errorMessages []string
 		for _, err := range err.(validator.ValidationErrors) {
@@ -128,12 +157,39 @@ func UpdateCourse(c *gin.Context) {
 		return
 	}
 
+	// Direktori untuk menyimpan file
+	publicDir := "./public/uploads"
+	if _, err := os.Stat(publicDir); os.IsNotExist(err) {
+		os.MkdirAll(publicDir, os.ModePerm)
+	}
+
+	// Proses upload file gambar (jika ada)
+	file, err := c.FormFile("image")
+	var imageURL string
+	if err == nil {
+		// Membuat nama file unik
+		extension := filepath.Ext(file.Filename)
+		uniqueFilename := fmt.Sprintf("%s-%s-%d%s", "course", input.Name, time.Now().Unix(), extension)
+
+		// Simpan file ke direktori public/uploads
+		filePath := filepath.Join(publicDir, uniqueFilename)
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(500, gin.H{"error": "Failed to upload file", "details": err.Error()})
+			return
+		}
+
+		imageURL = fmt.Sprintf("/uploads/%s", uniqueFilename)
+	} else {
+		// Gunakan gambar sebelumnya jika tidak ada gambar baru
+		imageURL = course.Image
+	}
+
 	// Update data course
 	updatedData := models.Course{
 		Name:        input.Name,
 		Description: input.Description,
 		Price:       input.Price,
-		Thumbnail:   input.Thumbnail,
+		Image:       imageURL,
 		UserID:      userID.(uint),
 	}
 

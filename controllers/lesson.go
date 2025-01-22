@@ -5,7 +5,10 @@ import (
 	"backend-go/models"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -14,21 +17,20 @@ import (
 // CreateLesson - Handler to create a new lesson
 func CreateLesson(c *gin.Context) {
 	var input struct {
-		Name        string `json:"name" binding:"required"`
-		Description string `json:"description" binding:"required"`
-		Video       string `json:"video"`
-		CourseID    uint   `json:"course_id" binding:"required"`
+		Name        string `form:"name" binding:"required"`
+		Description string `form:"description" binding:"required"`
+		CourseID    uint   `form:"course_id" binding:"required"`
 	}
 
 	var validate = validator.New()
 
-	// Bind input JSON to struct
-	if err := c.ShouldBindJSON(&input); err != nil {
+	// Parsing data dari multipart/form-data
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
-	// Validate input
+	// Validasi input
 	if err := validate.Struct(&input); err != nil {
 		var errorMessages []string
 		for _, err := range err.(validator.ValidationErrors) {
@@ -49,11 +51,35 @@ func CreateLesson(c *gin.Context) {
 		return
 	}
 
+	// Direktori untuk menyimpan file
+	publicDir := "./public/uploads"
+	if _, err := os.Stat(publicDir); os.IsNotExist(err) {
+		os.MkdirAll(publicDir, os.ModePerm)
+	}
+
+	// Proses upload file gambar (jika ada)
+	file, err := c.FormFile("image")
+	var imageURL string
+	if err == nil {
+		// Membuat nama file unik
+		extension := filepath.Ext(file.Filename)
+		uniqueFilename := fmt.Sprintf("%s-%s-%d%s", "lesson", input.Name, time.Now().Unix(), extension)
+
+		// Simpan file ke direktori public/uploads
+		filePath := filepath.Join(publicDir, uniqueFilename)
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(500, gin.H{"error": "Failed to upload file", "details": err.Error()})
+			return
+		}
+
+		imageURL = fmt.Sprintf("/uploads/%s", uniqueFilename)
+	}
+
 	// Create a new lesson
 	lesson := models.Lesson{
 		Name:        input.Name,
 		Description: input.Description,
-		Video:       input.Video,
+		Image:       imageURL,
 		CourseID:    input.CourseID,
 	}
 
@@ -65,6 +91,7 @@ func CreateLesson(c *gin.Context) {
 
 	c.JSON(201, gin.H{"message": "Lesson created successfully", "data": lesson})
 }
+
 
 // GetLessons - Handler to fetch all lessons
 func GetLessons(c *gin.Context) {
@@ -120,14 +147,13 @@ func UpdateLesson(c *gin.Context) {
 	lessonID := c.Param("id")
 
 	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Video       string `json:"video"`
-		CourseID    uint   `json:"course_id"`
+		Name        string `form:"name"`
+		Description string `form:"description"`
+		CourseID    uint   `form:"course_id"`
 	}
 
-	// Bind input JSON to struct
-	if err := c.ShouldBindJSON(&input); err != nil {
+	// Parsing data dari multipart/form-data
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
@@ -143,11 +169,44 @@ func UpdateLesson(c *gin.Context) {
 		return
 	}
 
+	// Direktori untuk menyimpan file
+	publicDir := "./public/uploads"
+	if _, err := os.Stat(publicDir); os.IsNotExist(err) {
+		os.MkdirAll(publicDir, os.ModePerm)
+	}
+
+	// Proses upload file gambar (jika ada)
+	file, err := c.FormFile("image")
+	var imageURL string
+	if err == nil {
+		// Membuat nama file unik
+		extension := filepath.Ext(file.Filename)
+		uniqueFilename := fmt.Sprintf("%s-%s-%d%s", "lesson", input.Name, time.Now().Unix(), extension)
+
+		// Simpan file ke direktori public/uploads
+		filePath := filepath.Join(publicDir, uniqueFilename)
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(500, gin.H{"error": "Failed to upload file", "details": err.Error()})
+			return
+		}
+
+		imageURL = fmt.Sprintf("/uploads/%s", uniqueFilename)
+	} else {
+		// Gunakan gambar sebelumnya jika tidak ada gambar baru
+		imageURL = lesson.Image
+	}
+
 	// Update lesson details
-	lesson.Name = input.Name
-	lesson.Description = input.Description
-	lesson.Video = input.Video
-	lesson.CourseID = input.CourseID
+	if input.Name != "" {
+		lesson.Name = input.Name
+	}
+	if input.Description != "" {
+		lesson.Description = input.Description
+	}
+	if input.CourseID != 0 {
+		lesson.CourseID = input.CourseID
+	}
+	lesson.Image = imageURL
 
 	// Save the updated lesson to the database
 	if err := config.DB.Save(&lesson).Error; err != nil {
@@ -157,6 +216,7 @@ func UpdateLesson(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Lesson updated successfully", "data": lesson})
 }
+
 
 // DeleteLesson - Handler to delete a lesson (optional)
 func DeleteLesson(c *gin.Context) {

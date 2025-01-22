@@ -17,7 +17,7 @@ type Profile struct {
 	FirstName string `gorm:"not null"`
 	LastName  string `gorm:"not null"`
 	Phone     string `gorm:"not null"`
-	Image     string `gorm:"not null"` // Kolom untuk link ke file
+	Image     string
 }
 
 type Course struct {
@@ -25,7 +25,7 @@ type Course struct {
 	Name        string  `gorm:"not null"`
 	Description string  `gorm:"not null"`
 	Price       float64 `gorm:"default:0"`
-	Thumbnail   string
+	Image   	string
 	UserID      uint
 	User        *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:UserID"`
 }
@@ -43,7 +43,7 @@ type Lesson struct {
 	Name        string `gorm:"not null"`
 	Description string `gorm:"not null"`
 	Content     string `gorm:"not null"`
-	Video       string
+	Image       string
 	CourseID    uint
 	Course      *Course `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:CourseID"`
 }
@@ -59,7 +59,7 @@ type Quiz struct {
 
 type Answer struct {
 	gorm.Model
-	Answer     string `gorm:"not null"`
+	Content     string `gorm:"not null"`
 	QuizID     uint
 	Quiz       *Quiz `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:QuestionID"`
 }

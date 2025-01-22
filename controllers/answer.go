@@ -13,7 +13,7 @@ import (
 // CreateAnswer - Handler to create a new answer
 func CreateAnswer(c *gin.Context) {
 	var input struct {
-		Answer     string `json:"answer" binding:"required"`
+		Content     string `json:"content" binding:"required"`
 		QuizID     uint   `json:"quiz_id" binding:"required"`
 	}
 
@@ -48,8 +48,8 @@ func CreateAnswer(c *gin.Context) {
 
 	// Create a new answer
 	answer := models.Answer{
-		Answer:     input.Answer,
-		QuizID:		input.QuizID,
+		Content:     input.Content,
+		QuizID:		 input.QuizID,
 	}
 
 	// Save the answer to the database
@@ -101,7 +101,7 @@ func GetAnswerByID(c *gin.Context) {
 func UpdateAnswer(c *gin.Context) {
 	id := c.Param("id")
 	var input struct {
-		Answer     string `json:"answer" binding:"required"`
+		Content     string `json:"content" binding:"required"`
 		QuizID 	   uint   `json:"quiz_id" binding:"required"`
 	}
 
@@ -123,7 +123,7 @@ func UpdateAnswer(c *gin.Context) {
 	}
 
 	// Update answer fields
-	answer.Answer = input.Answer
+	answer.Content = input.Content
 	answer.QuizID = input.QuizID
 
 	// Save the updated answer

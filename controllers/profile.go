@@ -20,7 +20,6 @@ type ProfileInput struct {
 	Address   string `form:"address" validate:"required"`
 }
 
-
 // Create Profile
 func CreateProfile(c *gin.Context) {
 	var input ProfileInput
