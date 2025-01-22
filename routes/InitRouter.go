@@ -28,7 +28,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/course/:id", middleware.IsLogin, controllers.GetCourseByID)
 	r.GET("/course/:id/students", controllers.GetStudentsInCourse)
 	r.GET("course/:id/lessons", middleware.IsEnrolled, controllers.GetLessonsInCourse)
-	r.GET("/courses/:id/quizzes", middleware.IsEnrolled, controllers.GetQuizzesByCourseID)
+	r.GET("/course/:id/quizzes", middleware.IsEnrolled, controllers.GetQuizzesByCourseID)
 	r.PUT("/course/:id", middleware.IsLogin, middleware.IsAdmin, controllers.UpdateCourse)
 	r.DELETE("/course/:id", middleware.IsLogin, middleware.IsAdmin, controllers.DeleteCourse)
 
@@ -48,9 +48,15 @@ func InitRouter() *gin.Engine {
 	r.POST("/quiz", middleware.IsLogin, middleware.IsAdmin, controllers.CreateQuiz)
 	r.GET("/quizzes", middleware.IsEnrolled, controllers.GetQuizzes)
 	r.GET("/quiz/:id", middleware.IsEnrolled, controllers.GetQuizByID)
-	
 	r.PUT("/quiz/:id", middleware.IsLogin, middleware.IsAdmin, controllers.UpdateQuiz)
 	r.DELETE("/quiz/:id", middleware.IsLogin, middleware.IsAdmin, controllers.DeleteQuiz)
+
+	//answer
+	r.POST("/answer", middleware.IsLogin, controllers.CreateAnswer)
+	r.GET("/answers/:id/question", middleware.IsEnrolled, controllers.GetAnswersByQuizID)
+	r.GET("/answer/:id", middleware.IsEnrolled, controllers.GetAnswerByID)
+	r.PUT("/answer/:id", middleware.IsLogin, middleware.IsAdmin, controllers.UpdateAnswer)
+	r.DELETE("/answer/:id", middleware.IsLogin, middleware.IsAdmin, controllers.DeleteAnswer)
 
 	//test
 	r.GET("/protected", middleware.IsLogin, middleware.IsAdmin, func(ctx *gin.Context) {

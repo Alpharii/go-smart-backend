@@ -57,19 +57,11 @@ type Quiz struct {
 	Course      *Course `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:CourseID"`
 }
 
-type Question struct {
-	gorm.Model
-	Question string `gorm:"not null"`
-	Answer   string `gorm:"not null"`
-	QuizID   uint
-	Quiz     *Quiz `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:QuizID"`
-}
-
 type Answer struct {
 	gorm.Model
 	Answer     string `gorm:"not null"`
-	QuestionID uint
-	Question   *Question `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:QuestionID"`
+	QuizID     uint
+	Quiz       *Quiz `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignKey:QuestionID"`
 }
 
 type UserQuiz struct {
