@@ -7,8 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter() *gin.Engine {
-	r := gin.Default()
+func InitRouter(r *gin.Engine) {
 
 	r.Static("/uploads", "./public/uploads")
 
@@ -68,6 +67,4 @@ func InitRouter() *gin.Engine {
 			},
 		})
 	})
-
-	return r
 }

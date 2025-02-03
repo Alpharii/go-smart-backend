@@ -25,7 +25,7 @@ func main() {
 
 	// Setup CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://example.com"}, // Ganti dengan domain asal yang diizinkan
+		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -34,7 +34,7 @@ func main() {
 	}))
 
 	// Initialize routes
-	r = routes.InitRouter()
+    routes.InitRouter(r) 
 
 	// Run the server
 	r.Run(":8080")
